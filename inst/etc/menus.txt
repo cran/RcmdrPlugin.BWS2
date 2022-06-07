@@ -1,0 +1,17 @@
+# type  menu/item   operation/parent  label                              command/menu        activation         install?
+ menu    bws2Menu    topMenu           ""                                 ""                  ""                 ""
+ item    bws2Menu    command           "Design profiles..."               bws2Design          ""                 "packageAvailable('DoE.base')"
+ item    bws2Menu    command           "Display questions..."             bws2Questions       ""                 "packageAvailable('support.BWS2')"
+ item    bws2Menu    command           "Prepare data set for analysis..." bws2Dataset         "activeDataSetP()" "packageAvailable('support.BWS2')"
+ item    topMenu     cascade           "BWS2"                             bws2Menu            ""                 "packageAvailable('support.BWS2')"
+ menu    bws2Measure bws2Menu          ""                                 ""                  ""                 ""
+ item    bws2Menu    cascade           "Measure preferences..."           bws2Measure         ""                 "packageAvailable('support.BWS2')"
+ menu    bws2CA      bws2Menu          ""                                 ""                  ""                 ""
+ item    bws2CA      command           "Calculate scores..."              bws2Count           "bws2dataP()"      "packageAvailable('support.BWS2')"
+ item    bws2CA      command           "Sum up scores"                    bws2CountSum        "bws2countP()"     "packageAvailable('support.BWS2')"
+ item    bws2CA      command           "Draw distributions of scores..."  bws2CountBarplot1   "bws2countP()"     "packageAvailable('support.BWS2')"
+ item    bws2Measure cascade           "Counting approach"                bws2CA              ""                 "packageAvailable('support.BWS2')"
+ menu    bws2MA      bws2Menu          ""                                 ""                  ""                 ""
+ item    bws2MA      command           "Fit model..."                     bws2FitmodelSimple  "bws2dataP()"      "packageAvailable('survival')"
+ item    bws2Measure cascade           "Modeling approach"                bws2MA              ""                 "packageAvailable('support.BWS2')"
+

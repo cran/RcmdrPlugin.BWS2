@@ -1,0 +1,6 @@
+import(Rcmdr, stats, support.CEs, support.BWS2, survival)
+
+importFrom(DoE.base, oa.design)
+
+exportPattern("^[^\\.]")
+
