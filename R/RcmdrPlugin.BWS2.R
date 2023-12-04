@@ -25,29 +25,43 @@
 bws2Design <- function() {
   initializeDialog(title = gettextRcmdr("Design Choice Sets for BWS2"))
   defaults <- list(
-    designName = "BWS2design",
-    RNGseedName = "",
-    RNGoptionVariable = "0")
+    designName         = "BWS2design",
+    attributelevelName = "BWS2attributes",
+    RNGseedName        = "",
+    RNGoptionVariable  = "0",
+    saveVariable       = "0")
   dialog.values <- getDialog("bws2Design", defaults)
 
   if(is.null(getDialog("bws2Design"))) putRcmdr("savedTableAttributes", NULL)
   
   ##### Output Frame #####
-  outputFrame <- tkframe(top)
+  outputFrame     <- tkframe(top)
+  designFrame     <- tkframe(outputFrame)
+  attributesFrame <- tkframe(outputFrame)
+  saveFrame       <- tkframe(outputFrame)
 
   # Choice sets
   designName <- tclVar(dialog.values$designName)
-  design     <- ttkentry(outputFrame, width = "20", 
+  design     <- ttkentry(designFrame, width = "13", 
                          textvariable = designName)
+
+  # Attributes and levels
+  attributelevelName <- tclVar(dialog.values$attributelevelName)
+  attributelevel     <- ttkentry(attributesFrame, width = "20",
+                                 textvariable = attributelevelName)
+
+  # Save
+  saveVariable <- tclVar(dialog.values$saveVariable)
+  saveCheckBox <- ttkcheckbutton(saveFrame, variable = saveVariable)
+  
 
   ##### Input Frame #####
   inputsFrame       <- tkframe(top)
-  designMethodFrame <- tkframe(inputsFrame)
   AltBlkRngFrame    <- tkframe(inputsFrame)
   RNGoptionFrame    <- tkframe(inputsFrame)
   TABLEFrame        <- tkframe(inputsFrame)
   tableFrame        <- tkframe(TABLEFrame)
-  
+
   # Seed for RNG
   RNGseedName <- tclVar(dialog.values$RNGseedName)
   RNGseed     <- ttkentry(AltBlkRngFrame,
@@ -69,7 +83,7 @@ bws2Design <- function() {
   ncols <- 7
 
   initial.table <- getRcmdr("savedTableAttributes")
-  
+
   ## Names of columns
   make.col.names <- "labelRcmdr(.tableFrame, text='')"
   col.varname <- c("Attribute", "Level 1", "Level 2", "Level 3",
@@ -104,22 +118,24 @@ bws2Design <- function() {
                         tclVar(initial.table[i, j])
                       }, envir = env)
       make.row <- paste(make.row, ", ",
-                        "ttkentry(.tableFrame, width = '10', textvariable =", 
+                        "ttkentry(.tableFrame, width = '11', textvariable =", 
                         varname, ")", sep="")
     }
     eval(parse(text = paste("tkgrid(", make.row, ")", sep = "")), envir = env)
   }
   tkgrid(get(".tableFrame", envir = env), sticky = "w")
 
-  
+
   ##### onOK Function #####
   onOK <- function() {
 
     putDialog("bws2Design", list(
-      designName = tclvalue(designName),
-      RNGseedName = tclvalue(RNGseedName),
-      RNGoptionVariable = tclvalue(RNGoptionVariable)))
-    
+      designName         = tclvalue(designName),
+      attributelevelName = tclvalue(attributelevelName),
+      RNGseedName        = tclvalue(RNGseedName),
+      RNGoptionVariable  = tclvalue(RNGoptionVariable),
+      saveVariable       = tclvalue(saveVariable)))
+
     closeDialog()
 
     # Table of attributes and levels
@@ -138,7 +154,7 @@ bws2Design <- function() {
 
     # Store the table of attributes and levels into savedTableAttributes 
     putRcmdr("savedTableAttributes", varNames) 
-    
+
     # Variables for attributes and levels
     attributeNames <- varNames[, 1]
     varidRows      <- which(attributeNames != "")
@@ -162,7 +178,7 @@ bws2Design <- function() {
                               attribute.names.list[i], sep = "")
     }
     cmd.attributes <- paste(cmd.attributes, ")", sep = "")
-    
+
     # Code for argument 'seed'
     if (is.na(as.numeric(tclvalue(RNGseedName)))) {
       cmd.seed <- paste(", seed = NULL))", sep = "")
@@ -182,18 +198,41 @@ bws2Design <- function() {
     } else {
       cmd.randomize <- paste(", randomize = FALSE")
     }
-    
+
     # Code for nlevels
     nlevels <- sapply(attribute.names.list, length)
 
     # Design choice sets
-    doItAndPrint(paste("BWS2attributes <- ", cmd.attributes, sep = ""))
+    doItAndPrint(paste0(tclvalue(attributelevelName), " <- ", cmd.attributes))
     doItAndPrint(
       paste(tclvalue(designName), " <- data.matrix(DoE.base::oa.design(",
             "nlevels = c(", paste(nlevels, collapse = ", "), ")",
             cmd.randomize,
             cmd.seed, sep = ""))
     doItAndPrint(paste(tclvalue(designName)))
+    
+    # Save choice sets and attributes and levels
+    if (tclvalue(saveVariable) == 1) {
+      saveFile <- tclvalue(tkgetSaveFile(
+        filetype = gettextRcmdr(
+          '{"R Data Files" {".rda" ".RDA" ".rdata" ".RData"}}'),
+        defaultextension = ".rda",
+        initialfile = paste0(tclvalue(designName), ".rda"),
+        parent = CommanderWindow()))
+      if (saveFile == "") {
+        tkfocus(CommanderWindow())
+        return()
+      }
+      cmd <- paste0('save(', tclvalue(designName),
+                    ', ', tclvalue(attributelevelName),
+                    ', file = "', saveFile, '")')
+      justDoIt(cmd)
+      logger(cmd)
+      Message(paste0(gettextRcmdr(
+            "BWS2 design and attributes-and-levels were exported to file: "),
+          saveFile),
+        type = "note")
+    }
     
     tkfocus(CommanderWindow())
   }
@@ -203,45 +242,56 @@ bws2Design <- function() {
   OKCancelHelp(helpSubject = "oa.design",
                reset       = "resetBws2Table",
                apply       = "bws2Design")
+
   # Output
-  tkgrid(
-    labelRcmdr(outputFrame,
-               text = gettextRcmdr("Name for design ")),
-    design, sticky = "w")
-  tkgrid(outputFrame, sticky = "w")
+  tkgrid(labelRcmdr(designFrame,
+                    text = gettextRcmdr("Name for design ")),
+         design, sticky = "nw")
+  tkgrid(labelRcmdr(attributesFrame,
+                    text = gettextRcmdr("Name for attributes and levels ")),
+         labelRcmdr(attributesFrame, text = tclvalue(attributelevelName),
+                    relief = "solid", foreground = "green"),
+         sticky = "nw")
+  tkgrid(saveCheckBox,
+         labelRcmdr(saveFrame,
+                    text = gettextRcmdr("Save to file")),
+         sticky = "nw")
+  tkgrid(designFrame,     labelRcmdr(outputFrame, text = "   "),
+         attributesFrame, labelRcmdr(outputFrame, text = "   "),
+         saveFrame,       sticky = "nw")
+  tkgrid(outputFrame, sticky = "nw")
 
   # Blank line
   tkgrid(labelRcmdr(top, text = ""))
 
   # Input
+  ## Table
+  tkgrid(labelRcmdr(
+           inputsFrame,
+           text = gettextRcmdr("Attributes and their levels:")),
+         sticky = "w")
+  tkgrid(tableFrame, sticky = "ew")
+  tkgrid(TABLEFrame, sticky = "ew")
+    
   ## RNG option
-  tkgrid(
-    RNGoptionCheckBox,
-      labelRcmdr(
-        RNGoptionFrame,
-        text = gettextRcmdr("Randomize the order of rows")),
-    sticky = "w")
+  tkgrid(RNGoptionCheckBox,
+         labelRcmdr(
+           RNGoptionFrame,
+           text = gettextRcmdr("Randomize the order of sets")),
+         sticky = "w")
   tkgrid(RNGoptionFrame, sticky = "w")
   
   ## Seed for RNG
+  tkgrid(labelRcmdr(
+           AltBlkRngFrame,
+           text = gettextRcmdr("Reproducibility:")),
+         sticky = "w")
   tkgrid(labelRcmdr(
            AltBlkRngFrame,
            text = gettextRcmdr("Seed for random number generator (optional) ")),
          RNGseed, sticky = "w")
   tkgrid(AltBlkRngFrame, sticky = "w")
 
-  # Blank line
-  tkgrid(labelRcmdr(inputsFrame, text = ""))
-
-  ## Table
-  tkgrid(labelRcmdr(
-    inputsFrame,
-    text = gettextRcmdr("Attributes and their levels")),
-    sticky = "w")
-
-  tkgrid(tableFrame, sticky = "ew")
-  tkgrid(TABLEFrame, sticky = "ew")
-    
   tkgrid(inputsFrame, sticky = "w")
 
   # OK Cancel Help Buttons
@@ -253,26 +303,34 @@ bws2Design <- function() {
 resetBws2Table <- function() {
   putRcmdr("savedTableAttributes", NULL)
   putDialog("bws2Design", NULL)
-  dceDesign()
+  bws2Design()
 }
 
 ###############################################################################
 
 bws2Questions <- function() {
   initializeDialog(title = gettextRcmdr("Display BWS2 Questions"))
-  defaults <- list(designName = "BWS2design",
-                   ini.positiontype = "left")
+  defaults <- list(designName         = "BWS2design",
+                   attributelevelName = "BWS2attributes",
+                   ini.positiontype   = "left")
   dialog.values <- getDialog("bws2Questions", defaults)
-  
-  
+
+
   ##### Input Frame #####
-  inputsFrame   <- tkframe(top)
-  positionFrame <- tkframe(top)
+  inputsFrame     <- tkframe(top)
+  designFrame     <- tkframe(inputsFrame)
+  attributesFrame <- tkframe(inputsFrame)
+  positionFrame   <- tkframe(top)
 
   # Choice sets
   designName <- tclVar(dialog.values$designName)
-  design <- ttkentry(inputsFrame, width = "20",
-                     textvariable = designName)
+  design     <- ttkentry(designFrame, width = "13",
+                         textvariable = designName)
+
+  # Attributes and levels
+  attributelevelName <- tclVar(dialog.values$attributelevelName)
+  attributelevel     <- ttkentry(attributesFrame, width = "13",
+                                 textvariable = attributelevelName)
 
   # position of attribute column
   radioButtons(positionFrame,
@@ -287,15 +345,16 @@ bws2Questions <- function() {
   ##### onOK Function #####
   onOK <- function() {
     putDialog("bws2Questions",
-              list(ini.positiontype = tclvalue(positiontypeVariable), 
-                   designName = tclvalue(designName)))
+              list(ini.positiontype   = tclvalue(positiontypeVariable),
+                   attributelevelName = tclvalue(attributelevelName), 
+                   designName         = tclvalue(designName)))
 
     designValue <- tclvalue(designName)
 
     closeDialog()
 
-    doItAndPrint(paste("bws2.questionnaire(choice.sets = ", designValue, 
-                       ", attribute.levels = BWS2attributes", 
+    doItAndPrint(paste("bws2.questionnaire(choice.sets = ", designValue,
+                       ", attribute.levels = ", tclvalue(attributelevelName),
                        ", position = '", tclvalue(positiontypeVariable), "')",
                        sep = ""))
     tkfocus(CommanderWindow())
@@ -308,12 +367,19 @@ bws2Questions <- function() {
                reset       = "bws2Questions",
                apply       = NULL)
 
-  # Name of design
-  tkgrid(labelRcmdr(
-    inputsFrame,
-    text = gettextRcmdr("Name of design ")),
-    design, sticky = "w")
+  # Design
+  tkgrid(labelRcmdr(designFrame,
+                    text = gettextRcmdr("Design ")),
+         design, sticky = "w")
+  # Attributes and levels
+  tkgrid(labelRcmdr(attributesFrame, text = gettextRcmdr("Attributes and levels ")),
+         labelRcmdr(attributesFrame, text = tclvalue(attributelevelName),
+                    relief = "solid", foreground = "green"),
+         sticky = "w")
+  tkgrid(designFrame, labelRcmdr(inputsFrame, text = "   "),
+         attributesFrame, sticky = "w")
   tkgrid(inputsFrame, sticky = "w")
+  # Position
   tkgrid(positiontypeFrame, sticky = "w")
   tkgrid(positionFrame, sticky = "w")
   
@@ -326,7 +392,7 @@ bws2Questions <- function() {
 ###############################################################################
 bws2Dataset <- function() {
   initializeDialog(
-    title = gettextRcmdr("Prepare Data Set for BWS2 Analysis"))
+    title = gettextRcmdr("Create Data Set for BWS2 Analysis"))
   defaults <- list(
     ini.baseAttribute      = "<no variable selected>",
     ini.baseLevels         = "NULL",
@@ -337,51 +403,63 @@ bws2Dataset <- function() {
     ini.datasetName        = "BWS2data",
     ini.designName         = "BWS2design",
     ini.idName             = "id",
-    ini.letterRB           = "1")
+    ini.letterRB           = "1",
+    attributelevelName     = "BWS2attributes",
+    saveVariable           = "0")
   dialog.values <- getDialog("bws2Dataset", defaults)
 
 
   ###### Output frame
   outputFrame      <- tkframe(top)
   datasetnameFrame <- tkframe(outputFrame)
-  activeFrame      <- tkframe(outputFrame)
+  saveFrame        <- tkframe(outputFrame)
 
-  # output name
+  # Output name
   datasetName <- tclVar(dialog.values$ini.datasetName)
-  dataset <- ttkentry(datasetnameFrame, width = "20",
-                      textvariable = datasetName)
+  dataset     <- ttkentry(datasetnameFrame, width = "14",
+                          textvariable = datasetName)
+
+  # Save
+  saveVariable <- tclVar(dialog.values$saveVariable)
+  saveCheckBox <- ttkcheckbutton(saveFrame, variable = saveVariable)
 
 
   ###### Inputs frame
   inputsFrame <- tkframe(top)
 
   ### Frame in left
-  leftFrame    <- tkframe(inputsFrame)
-  objectsFrame <- tkframe(leftFrame)
-  radio1Frame  <- tkframe(leftFrame)
-  radio2Frame  <- tkframe(leftFrame)
-  radio3Frame  <- tkframe(leftFrame)
-  chkbuttonFrame <- tkframe(leftFrame)
+  leftFrame          <- tkframe(inputsFrame)
+  objectsFrame       <- tkframe(leftFrame)
+  radio1Frame        <- tkframe(leftFrame)
+  radio2Frame        <- tkframe(leftFrame)
+  radio3Frame        <- tkframe(leftFrame)
+  chkbuttonFrame     <- tkframe(leftFrame)
   baseAttributeFrame <- tkframe(leftFrame)
   baseLevelsFrame    <- tkframe(leftFrame)
-  baseLevelFrame1 <- tkframe(leftFrame)
+  baseLevelFrame1    <- tkframe(leftFrame)
 
   nAlts <- length(BWS2attributes)
   for (i in 1:nAlts){
-    eval(parse(text = paste("baseLevelBox", i, 
-                            " <- variableComboBox(baseLevelFrame1", 
+    eval(parse(text = paste("baseLevelBox", i,
+                            " <- variableComboBox(baseLevelFrame1",
                             ", variableList = BWS2attributes[[", i,
                             "]], title = '')",
                             sep = "")))
-  }  
+  }
 
   # choice.sets
   designName <- tclVar(dialog.values$ini.designName)
-  design <- ttkentry(objectsFrame, width = "20", textvariable = designName)
+  design     <- ttkentry(objectsFrame, width = "13",
+                         textvariable = designName)
+
+  # Attributes and levels
+  attributelevelName <- tclVar(dialog.values$attributelevelName)
+  attributelevel     <- ttkentry(objectsFrame, width = "13",
+                                 textvariable = attributelevelName)
 
   # id
   idName <- tclVar(dialog.values$ini.idName)
-  id <- ttkentry(objectsFrame, width = "20", textvariable = idName)
+  id <- ttkentry(objectsFrame, width = "13", textvariable = idName)
 
   # response.type
   radioButtons(radio1Frame, 
@@ -423,11 +501,11 @@ bws2Dataset <- function() {
 
   # Table
   env <- environment()
-  assign(".tableFrame", tkframe(tableFrame), envir=env)
+  assign(".tableFrame", tkframe(tableFrame), envir = env)
 
   setUpTable <- function(...){
-    tkdestroy(get(".tableFrame", envir=env))
-    assign(".tableFrame", tkframe(tableFrame), envir=env)
+    tkdestroy(get(".tableFrame", envir = env))
+    assign(".tableFrame", tkframe(tableFrame), envir = env)
     nrows <- as.numeric(tclvalue(rowsValue))
     ncols <- 2
 
@@ -452,7 +530,7 @@ bws2Dataset <- function() {
       if (tclvalue(lettertypeVariable) == "1") {
         b <- "B"
         w <- "W"
-      } else if (tclvalue(lettertypeVariable) == "2"){
+      } else if (tclvalue(lettertypeVariable) == "2") {
         b <- "b"
         w <- "w"
       } else {
@@ -569,7 +647,9 @@ bws2Dataset <- function() {
     ini.datasetName        = tclvalue(datasetName),
     ini.designName         = tclvalue(designName),
     ini.idName             = tclvalue(idName),
-    ini.letterRB           = tclvalue(lettertypeVariable)))
+    ini.letterRB           = tclvalue(lettertypeVariable),
+    attributelevelName     = tclvalue(attributelevelName),
+    saveVariable           = tclvalue(saveVariable)))
 
     if(BaseAttributeVar != "<no variable selected>") {
       BaseAttributeVar <- paste("'", BaseAttributeVar, "'", sep = "")
@@ -607,17 +687,43 @@ bws2Dataset <- function() {
       cmd.reverseAttributes <- paste(", reverse = FALSE")
     }
 
+    # Create data set for BWS2
     doItAndPrint(
       paste(tclvalue(datasetName), " <- bws2.dataset(data = ", 
             getRcmdr(".activeDataSet"),
             ", id = '", tclvalue(idName), "'",
             ", response = ", cmd,
             ", choice.sets = ", tclvalue(designName),
-            ", attribute.levels = BWS2attributes",
+            ", attribute.levels = ", tclvalue(attributelevelName),
             ", base.attribute = ", BaseAttributeVar,
             ", base.level = ", cmd.base.level,
             cmd.reverseAttributes, 
             ", model = '", tclvalue(modeltypeVariable), "')", sep = ""))
+
+    activeDataSet(tclvalue(datasetName))
+
+    # Save to file
+    if (tclvalue(saveVariable) == 1) {
+      saveFile <- tclvalue(tkgetSaveFile(
+        filetypes = gettextRcmdr(
+          '{"R Data Files" {".rda" ".RDA" ".rdata" ".RData"}}'),
+        defaultextension = ".rda",
+        initialfile = paste0(tclvalue(datasetName), ".rda"),
+        parent = CommanderWindow()))
+      if (saveFile == "") {
+        tkfocus(CommanderWindow())
+        return()
+      }
+      cmd <- paste0('save(', tclvalue(datasetName),
+                    ', file = "', saveFile, '")')
+      justDoIt(cmd)
+      logger(cmd)
+      Message(paste(gettextRcmdr(
+            "BWS2 data set for analysis was exported to file: "),
+          saveFile),
+        type = "note")
+    }
+
 
     tkfocus(CommanderWindow())
   }
@@ -631,15 +737,26 @@ bws2Dataset <- function() {
   tkgrid(labelRcmdr(datasetnameFrame,
     text = gettextRcmdr("Name for data set ")),
     dataset, sticky = "w")
-  tkgrid(datasetnameFrame, sticky = "w")
+  tkgrid(saveCheckBox,
+         labelRcmdr(saveFrame, text = gettextRcmdr("Save to file")),
+         sticky = "w")
+  tkgrid(datasetnameFrame, labelRcmdr(outputFrame, text = "   "),
+         saveFrame, sticky = "w")
   tkgrid(outputFrame, sticky = "w")
+
+  # Blank
   tkgrid(labelRcmdr(top, text = ""))
 
   # Inputs
   ## Left side
   tkgrid(labelRcmdr(objectsFrame,
-    text = gettextRcmdr("Name of design")),
+    text = gettextRcmdr("Design")),
     design, sticky = "w")
+  tkgrid(labelRcmdr(objectsFrame,
+    text = gettextRcmdr("Attributes and levels ")),
+    labelRcmdr(inputsFrame, text = tclvalue(attributelevelName),
+               relief = "solid", foreground = "green"),
+    sticky = "w")
   tkgrid(labelRcmdr(objectsFrame,
     text = gettextRcmdr("ID variable")),
     id, sticky = "w")
@@ -723,7 +840,7 @@ bws2Count <- function() {
 
   # data
   dataName <- tclVar(dialog.values$ini.dataName)
-  data     <- ttkentry(datasetFrame, width = "20", textvariable = dataName)
+  data     <- ttkentry(datasetFrame, width = "14", textvariable = dataName)
 
 
   onOK <- function() {
@@ -735,6 +852,8 @@ bws2Count <- function() {
 
     doItAndPrint(paste(dataValue," <- bws2.count(data = ", ActiveDataSet(), ")", 
                        sep = ""))
+
+    activeDataSet(tclvalue(dataName))
 
     tkfocus(CommanderWindow())
   }
@@ -880,7 +999,7 @@ bws2FitmodelSimple <- function() {
   UpdateModelNumber()
   outputFrame <- tkframe(top)
   modelName   <- tclVar(paste("BWS2model.", getRcmdr("modelNumber"), sep = ""))
-  model       <- ttkentry(outputFrame, width = "20", textvariable = modelName)
+  model       <- ttkentry(outputFrame, width = "14", textvariable = modelName)
 
   ##### Input Frame
   inputFrame <- tkframe(top)
@@ -1003,7 +1122,10 @@ bws2FitmodelSimple <- function() {
   # Frames in left  
   tkgrid(labelRcmdr(responseVarFrame, 
                     text = gettextRcmdr("Response variable ")),
-         responseVar, sticky = "w")
+         labelRcmdr(responseVarFrame,
+                    text = tclvalue(responseVarName),
+                    relief = "solid", foreground = "green"),
+         sticky = "w")
   tkgrid(responseVarFrame, sticky = "w")
 
   tkgrid(getFrame(attributesBox), sticky = "nw")
@@ -1024,7 +1146,10 @@ bws2FitmodelSimple <- function() {
 
   tkgrid(labelRcmdr(strataVarFrame, 
                     text = gettextRcmdr("Stratification variable ")),
-         strataVar, sticky = "w")
+         labelRcmdr(strataVarFrame,
+                    text = tclvalue(strataVarName),
+                    relief = "solid", foreground = "green"),
+         sticky = "w")
   tkgrid(strataVarFrame, sticky = "w")
 
   tkgrid(inputFrame, sticky = "w")
@@ -1046,6 +1171,27 @@ resetbws2FitmodelSimple <- function() {
   putDialog("bws2FitmodelSimple", NULL)
   putDialog("bws2FitmodelSimple", NULL, resettable = FALSE)
   bws2FitmodelSimple()
+}
+###############################################################################
+bws2Load <- function() {
+  file <- tclvalue(tkgetOpenFile(filetype = gettextRcmdr(
+    ' {"R Data Files" {".rda" ".RDA" ".rdata" ".RData"}}')))
+
+  if (file == "") {
+    return()
+  }
+
+  setBusyCursor()
+  on.exit(setIdleCursor())
+
+  cmd <- paste0('load("', file, '")')
+  loadedObjects <- justDoIt(cmd)
+  logger(cmd)
+  Message(paste0(gettextRcmdr("Names of loaded objects: "),
+                 paste(loadedObjects, collapse = ", ")),
+          type = "note")
+
+  tkfocus(CommanderWindow())
 }
 ###############################################################################
 bws2dataP <- function() {

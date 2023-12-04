@@ -1,5 +1,6 @@
 \docType{package}
 \name{RcmdrPlugin.BWS2-package}
+\alias{RcmdrPlugin.BWS2-package}
 \alias{RcmdrPlugin.BWS2}
 \alias{bws2Design}
 \alias{resetBws2Table}
@@ -11,6 +12,7 @@
 \alias{bws2CountBarplot1}
 \alias{bws2FitmodelSimple}
 \alias{resetbws2FitmodelSimple}
+\alias{bws2Load}
 \alias{bws2dataP}
 \alias{bws2countP}
 
@@ -49,7 +51,7 @@ the corresponding dialog box opens. The following dialog boxes are
 provided by \pkg{RcmdrPlugin.BWS2}:
 
 \itemize{
-   \item The dialog box for \dQuote{Design profiles...} designs 
+   \item The dialog box for \dQuote{Design choice sets...} designs 
 choice sets (profiles) for BWS2 with an orthogonal design 
 using the function \code{\link[DoE.base]{oa.design}} 
 in \pkg{\link{DoE.base}}.
@@ -59,8 +61,8 @@ displays BWS2 questions from the profiles designed in the first dialog box
 using the function \code{\link[support.BWS2]{bws2.questionnaire}} in 
 \pkg{\link{support.BWS2}}.
 
-   \item The dialog box for \dQuote{Prepare data set for analysis...} 
-prepares a data set for analysis combining the choice sets designed in the first 
+   \item The dialog box for \dQuote{Create data set for analysis...} 
+creates a data set for analysis combining the choice sets designed in the first 
 dialog box and a data set containing responses to BWS2 questions using 
 the function \code{\link[support.BWS2]{bws2.dataset}} 
 in \pkg{\link{support.BWS2}}.
@@ -97,6 +99,11 @@ in \pkg{\link{survival}} and \code{\link[support.CEs]{gofm}}
 in \pkg{\link{support.CEs}}. The menu item is activated 
 if a data set for analysis created in the previous dialog box is selected as 
 the active data set.
+
+   \item The dialog box for \dQuote{Load saved objects...} loads an R 
+Data (rda) file saved in the dialog box for \dQuote{Design choice sets...} 
+or \dQuote{Create data set for analysis...} using the function 
+\code{\link[base]{load}} in \pkg{\link{base}}.
 }
 
 }

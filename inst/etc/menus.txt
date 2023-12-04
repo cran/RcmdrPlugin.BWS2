@@ -1,8 +1,8 @@
 # type  menu/item   operation/parent  label                              command/menu        activation         install?
  menu    bws2Menu    topMenu           ""                                 ""                  ""                 ""
- item    bws2Menu    command           "Design profiles..."               bws2Design          ""                 "packageAvailable('DoE.base')"
+ item    bws2Menu    command           "Design choice sets..."            bws2Design          ""                 "packageAvailable('DoE.base')"
  item    bws2Menu    command           "Display questions..."             bws2Questions       ""                 "packageAvailable('support.BWS2')"
- item    bws2Menu    command           "Prepare data set for analysis..." bws2Dataset         "activeDataSetP()" "packageAvailable('support.BWS2')"
+ item    bws2Menu    command           "Create data set for analysis..."  bws2Dataset         "activeDataSetP()" "packageAvailable('support.BWS2')"
  item    topMenu     cascade           "BWS2"                             bws2Menu            ""                 "packageAvailable('support.BWS2')"
  menu    bws2Measure bws2Menu          ""                                 ""                  ""                 ""
  item    bws2Menu    cascade           "Measure preferences..."           bws2Measure         ""                 "packageAvailable('support.BWS2')"
@@ -14,4 +14,6 @@
  menu    bws2MA      bws2Menu          ""                                 ""                  ""                 ""
  item    bws2MA      command           "Fit model..."                     bws2FitmodelSimple  "bws2dataP()"      "packageAvailable('survival')"
  item    bws2Measure cascade           "Modeling approach"                bws2MA              ""                 "packageAvailable('support.BWS2')"
-
+ menu    bws2SV      bws2Menu          ""                                 ""                  ""                 ""
+ item    bws2Menu    cascade           "Load saved objects"               bws2SV              ""                 ""
+ item    bws2SV      command           "Load saved objects..."            bws2Load            ""                 "packageAvailable('support.BWS2')"

@@ -1,24 +1,24 @@
 citHeader("To cite RcmdrPlugin.BWS2 in publications use:")
 
-citEntry(
-  entry  = "Manual",
-  title  = "{RcmdrPlugin.BWS2: R Commander Plug-in for Case 2 Best-Worst Scaling}",
-  author = "Hideo Aizaki",
-  year   = 2022,
-  note   = "R package version 0.1-0",
-  url    = "https://CRAN.R-project.org/package=RcmdrPlugin.BWS2",
+bibentry(
+  bibtype = "Manual",
+  title   = "{RcmdrPlugin.BWS2: R Commander Plug-in for Case 2 Best-Worst Scaling}",
+  author  = c(person("Hideo", "Aizaki")),
+  year    = 2023,
+  note    = "R package version 0.2-0",
+  url     = "https://CRAN.R-project.org/package=RcmdrPlugin.BWS2",
 
   textVersion = 
-  paste("Aizaki H (2022).",
+  paste("Aizaki H (2023).",
         "RcmdrPlugin.BWS2: R Commander Plug-in for Case 2 Best-Worst Scaling.",
-        "R package version 0.1-0.",
+        "R package version 0.2-0.",
         "URL https://CRAN.R-project.org/package=RcmdrPlugin.BWS2.")
 )
 
-citEntry(
-  entry   = "Article",
+bibentry(
+  bibtype = "Article",
   title   = "{An R package and tutorial for case 2 best-worst scaling}",
-  author  = "Hideo Aizaki and James Fogarty",
+  author  = c(person("Hideo", "Aizaki"), person("James", "Fogarty")),
   year    = "2019",
   journal = "Journal of Choice Modelling",
   volume  = "32",

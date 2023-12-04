@@ -1,0 +1,8 @@
+Changes to package RcmdrPlugin.BWS2
+
+2023-12-04, version 0.2-0
+- Modified dialog boxes.
+- Added a dialog box for loading saved objects.
+
+2022-06-07, version 0.1-0
+- First release to CRAN.
