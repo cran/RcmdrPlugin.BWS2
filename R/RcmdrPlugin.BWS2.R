@@ -239,7 +239,7 @@ bws2Design <- function() {
 
   ##### Specification of dialog box #####
   # Ok Cancel Help Buttons 
-  OKCancelHelp(helpSubject = "oa.design",
+  OKCancelHelp(helpSubject = "bws2Design",
                reset       = "resetBws2Table",
                apply       = "bws2Design")
 
@@ -363,7 +363,7 @@ bws2Questions <- function() {
   
   ##### Specification of dialog box #####
   # Ok Cancel Help Buttons 
-  OKCancelHelp(helpSubject = "bws2.questionnaire",
+  OKCancelHelp(helpSubject = "bws2Questions",
                reset       = "bws2Questions",
                apply       = NULL)
 
@@ -729,8 +729,8 @@ bws2Dataset <- function() {
   }
 
 
-  OKCancelHelp(helpSubject = "bws2.dataset",
-               reset       = "resetbws2Dataset",
+  OKCancelHelp(helpSubject = "bws2Dataset",
+               reset       = "resetBws2Dataset",
                apply       = "bws2Dataset")
 
   # Output
@@ -822,7 +822,7 @@ bws2Dataset <- function() {
   dialogSuffix()
 }
 
-resetbws2Dataset <- function(){
+resetBws2Dataset <- function(){
   putRcmdr("savedTable", NULL)
   putDialog("bws2Dataset", NULL)
   bws2Dataset()
@@ -858,7 +858,7 @@ bws2Count <- function() {
     tkfocus(CommanderWindow())
   }
 
-  OKCancelHelp(helpSubject = "bws2.count",
+  OKCancelHelp(helpSubject = "bws2Count",
                reset       = "bws2Count",
                apply       = NULL)
 
@@ -878,14 +878,14 @@ bws2CountSum <- function() {
   doItAndPrint(paste("sum(", ActiveDataSet(), ")", sep = ""))
 }
 ###############################################################################
-bws2CountBarplot1 <- function() {
+bws2CountBarplot <- function() {
   initializeDialog(
     title = gettextRcmdr("Draw Distributions of BWS2 Scores"))
   defaults <- list(
     ini.scoretype = "bw",
     ini.NrowsName = "",
     ini.NcolsName = "")
-  dialog.values <- getDialog("bws2CountBarplot1", defaults)
+  dialog.values <- getDialog("bws2CountBarplot", defaults)
 
   optionsFrame <- tkframe(top)
   scoreFrame   <- tkframe(optionsFrame)
@@ -910,7 +910,7 @@ bws2CountBarplot1 <- function() {
   Ncols     <- ttkentry(rowcolFrame, width = "4", textvariable = NcolsName)
 
   onOK <- function() {
-    putDialog("bws2CountBarplot1", list(
+    putDialog("bws2CountBarplot", list(
     ini.scoretype = tclvalue(scoretypeVariable),
     ini.NrowsName = tclvalue(NrowsName),
     ini.NcolsName = tclvalue(NcolsName)))
@@ -932,9 +932,9 @@ bws2CountBarplot1 <- function() {
   }
 
 
-  OKCancelHelp(helpSubject = "bws2.count",
-               reset       = "bws2CountBarplot1",
-               apply       = "bws2CountBarplot1")
+  OKCancelHelp(helpSubject = "bws2CountBarplot",
+               reset       = "bws2CountBarplot",
+               apply       = "bws2CountBarplot")
 
   tkgrid(labelRcmdr(
     mfrowFrame,
@@ -956,16 +956,16 @@ bws2CountBarplot1 <- function() {
   dialogSuffix()
 }
 ###############################################################################
-bws2FitmodelSimple <- function() {
+bws2Model <- function() {
   initializeDialog(title = 
-    gettextRcmdr("Fit BWS2 Model"))
+    gettextRcmdr("Fit Model to BWS2 Data"))
   defaults <- list(
     ini.responseVarName = "RES",
     ini.strataVarName   = "STR",
     ini.attributesVar   = NULL,
     ini.levelsVar       = NULL,
     ini.covariatesVar   = NULL)
-  dialog.values <- getDialog("bws2FitmodelSimple", defaults)
+  dialog.values <- getDialog("bws2Model", defaults)
 
   .activeModel <- ActiveModel()
   currentModel <- if(!is.null(.activeModel)) {
@@ -1071,7 +1071,7 @@ bws2FitmodelSimple <- function() {
 
     attributesLevelsMF <- paste(c(attributes, levels), collapse = " + ")
    
-    putDialog("bws2FitmodelSimple", 
+    putDialog("bws2Model", 
       list(ini.responseVarName = tclvalue(responseVarName),
            ini.strataVarName   = tclvalue(strataVarName),
            ini.attributesVar   = attributes,
@@ -1108,9 +1108,9 @@ bws2FitmodelSimple <- function() {
     tkfocus(CommanderWindow())
   }
 
-  OKCancelHelp(helpSubject = "clogit", model = TRUE,
-               reset       = "resetbws2FitmodelSimple",
-               apply       = "bws2FitmodelSimple")
+  OKCancelHelp(helpSubject = "bws2Model", model = TRUE,
+               reset       = "resetBws2Model",
+               apply       = "bws2Model")
 
   ## Output
   tkgrid(labelRcmdr(outputFrame, text = gettextRcmdr("Name for model ")),
@@ -1166,11 +1166,11 @@ bws2FitmodelSimple <- function() {
   dialogSuffix()
 }
 
-resetbws2FitmodelSimple <- function() {
+resetBws2Model <- function() {
   putRcmdr("reset.model", TRUE)
-  putDialog("bws2FitmodelSimple", NULL)
-  putDialog("bws2FitmodelSimple", NULL, resettable = FALSE)
-  bws2FitmodelSimple()
+  putDialog("bws2Model", NULL)
+  putDialog("bws2Model", NULL, resettable = FALSE)
+  bws2Model()
 }
 ###############################################################################
 bws2Load <- function() {
@@ -1194,10 +1194,10 @@ bws2Load <- function() {
   tkfocus(CommanderWindow())
 }
 ###############################################################################
-bws2dataP <- function() {
+bws2DataP <- function() {
   activeDataSetP() && class(get(ActiveDataSet()))[1] == "bws2dataset"
 }
-bws2countP <- function() {
+bws2CountP <- function() {
   activeDataSetP() && class(get(ActiveDataSet()))[1] == "bws2.count"
 }
 
