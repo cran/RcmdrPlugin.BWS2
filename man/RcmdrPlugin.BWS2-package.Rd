@@ -30,6 +30,7 @@ Refer to Aizaki and Fogarty (2019) and
 \sQuote{Non-Market Valuation with R} <\url{http://lab.agr.hokudai.ac.jp/nmvr/}> 
 for a brief introduction to BWS2 in R, 
 and Louviere et al. (2015) and Flynn et al. (2007) for BWS2.
+A manual for this package is available at <\url{https://sites.google.com/view/r4sp/rcmdrplugin}>.
 
 After successfully installing and loading \pkg{RcmdrPlugin.BWS2}, 
 the R Commander window will appear, and then you will find \sQuote{\code{BWS2}} 

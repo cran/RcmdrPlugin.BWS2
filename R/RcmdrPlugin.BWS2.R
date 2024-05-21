@@ -25,11 +25,11 @@
 bws2Design <- function() {
   initializeDialog(title = gettextRcmdr("Design Choice Sets for BWS2"))
   defaults <- list(
-    designName         = "BWS2design",
-    attributelevelName = "BWS2attributes",
-    RNGseedName        = "",
-    RNGoptionVariable  = "0",
-    saveVariable       = "0")
+    ini.designName         = "BWS2design",
+    ini.attributelevelName = "BWS2attributes",
+    ini.RNGseedName        = "",
+    ini.RNGoptionVariable  = "0",
+    ini.saveVariable       = "0")
   dialog.values <- getDialog("bws2Design", defaults)
 
   if(is.null(getDialog("bws2Design"))) putRcmdr("savedTableAttributes", NULL)
@@ -41,17 +41,17 @@ bws2Design <- function() {
   saveFrame       <- tkframe(outputFrame)
 
   # Choice sets
-  designName <- tclVar(dialog.values$designName)
+  designName <- tclVar(dialog.values$ini.designName)
   design     <- ttkentry(designFrame, width = "13", 
                          textvariable = designName)
 
   # Attributes and levels
-  attributelevelName <- tclVar(dialog.values$attributelevelName)
+  attributelevelName <- tclVar(dialog.values$ini.attributelevelName)
   attributelevel     <- ttkentry(attributesFrame, width = "20",
                                  textvariable = attributelevelName)
 
   # Save
-  saveVariable <- tclVar(dialog.values$saveVariable)
+  saveVariable <- tclVar(dialog.values$ini.saveVariable)
   saveCheckBox <- ttkcheckbutton(saveFrame, variable = saveVariable)
   
 
@@ -63,13 +63,13 @@ bws2Design <- function() {
   tableFrame        <- tkframe(TABLEFrame)
 
   # Seed for RNG
-  RNGseedName <- tclVar(dialog.values$RNGseedName)
+  RNGseedName <- tclVar(dialog.values$ini.RNGseedName)
   RNGseed     <- ttkentry(AltBlkRngFrame,
                           width = "10",
                           textvariable = RNGseedName)
 
   # RNG option
-  RNGoptionVariable <- tclVar(dialog.values$RNGoptionVariable)
+  RNGoptionVariable <- tclVar(dialog.values$ini.RNGoptionVariable)
   RNGoptionCheckBox <- ttkcheckbutton(RNGoptionFrame,
                                       variable = RNGoptionVariable)
 
@@ -130,11 +130,11 @@ bws2Design <- function() {
   onOK <- function() {
 
     putDialog("bws2Design", list(
-      designName         = tclvalue(designName),
-      attributelevelName = tclvalue(attributelevelName),
-      RNGseedName        = tclvalue(RNGseedName),
-      RNGoptionVariable  = tclvalue(RNGoptionVariable),
-      saveVariable       = tclvalue(saveVariable)))
+      ini.designName         = tclvalue(designName),
+      ini.attributelevelName = tclvalue(attributelevelName),
+      ini.RNGseedName        = tclvalue(RNGseedName),
+      ini.RNGoptionVariable  = tclvalue(RNGoptionVariable),
+      ini.saveVariable       = tclvalue(saveVariable)))
 
     closeDialog()
 
@@ -404,10 +404,11 @@ bws2Dataset <- function() {
     ini.designName         = "BWS2design",
     ini.idName             = "id",
     ini.letterRB           = "1",
-    attributelevelName     = "BWS2attributes",
-    saveVariable           = "0")
+    ini.attributelevelName = "BWS2attributes",
+    ini.saveVariable       = "0")
   dialog.values <- getDialog("bws2Dataset", defaults)
 
+  if(is.null(getDialog("bws2Dataset"))) putRcmdr("savedTableBws2Dataset", NULL)
 
   ###### Output frame
   outputFrame      <- tkframe(top)
@@ -420,7 +421,7 @@ bws2Dataset <- function() {
                           textvariable = datasetName)
 
   # Save
-  saveVariable <- tclVar(dialog.values$saveVariable)
+  saveVariable <- tclVar(dialog.values$ini.saveVariable)
   saveCheckBox <- ttkcheckbutton(saveFrame, variable = saveVariable)
 
 
@@ -453,7 +454,7 @@ bws2Dataset <- function() {
                          textvariable = designName)
 
   # Attributes and levels
-  attributelevelName <- tclVar(dialog.values$attributelevelName)
+  attributelevelName <- tclVar(dialog.values$ini.attributelevelName)
   attributelevel     <- ttkentry(objectsFrame, width = "13",
                                  textvariable = attributelevelName)
 
@@ -583,7 +584,7 @@ bws2Dataset <- function() {
     tkgrid(get(".tableFrame", envir = env), sticky = "ew", padx = 6)
   }
 
-  ini.table <- getRcmdr("savedTable")
+  ini.table <- getRcmdr("savedTableBws2Dataset")
 
   # Slider
   if (is.null(ini.table)) {
@@ -648,8 +649,8 @@ bws2Dataset <- function() {
     ini.designName         = tclvalue(designName),
     ini.idName             = tclvalue(idName),
     ini.letterRB           = tclvalue(lettertypeVariable),
-    attributelevelName     = tclvalue(attributelevelName),
-    saveVariable           = tclvalue(saveVariable)))
+    ini.attributelevelName = tclvalue(attributelevelName),
+    ini.saveVariable       = tclvalue(saveVariable)))
 
     if(BaseAttributeVar != "<no variable selected>") {
       BaseAttributeVar <- paste("'", BaseAttributeVar, "'", sep = "")
@@ -676,7 +677,7 @@ bws2Dataset <- function() {
       }
     }
 
-    putRcmdr("savedTable", BWvarNamesTable)
+    putRcmdr("savedTableBws2Dataset", BWvarNamesTable)
 
     cmd <- paste("c('", paste(BWvarNames, collapse = "','"), "')", sep = "")
 
@@ -823,7 +824,7 @@ bws2Dataset <- function() {
 }
 
 resetBws2Dataset <- function(){
-  putRcmdr("savedTable", NULL)
+  putRcmdr("savedTableBws2Dataset", NULL)
   putDialog("bws2Dataset", NULL)
   bws2Dataset()
 }

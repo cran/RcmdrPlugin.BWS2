@@ -1,5 +1,10 @@
 Changes to package RcmdrPlugin.BWS2
 
+2024-05-21, version 0.2-2
+- Modified functions.
+- Modified help files.
+- Modified DESCRIPTION.
+
 2024-03-06, version 0.2-1
 - Added help files.
 - Modified appearances of dialog boxes.
