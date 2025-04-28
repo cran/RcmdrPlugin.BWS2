@@ -21,13 +21,13 @@ For details, see Aizaki and Fogarty (2019) <doi:10.1016/j.jocm.2019.100171>.
 \details{
 This package is an R Commander plug-in package for Case 2 (profile case) 
 best--worst scaling (BWS2). It depends on 
-\pkg{\link{DoE.base}} (Groemping 2018), 
-\pkg{\link{Rcmdr}} (Fox 2005, 2017; Fox and Bouchet-Valat 2021), 
-\pkg{\link{support.BWS2}} (Aizaki 2021; Aizaki and Fogarty 2019), 
-\pkg{\link{support.CEs}} (Aizaki 2012, 2021), and
-\pkg{\link{survival}} (Therneau 2022; Therneau and Grambsch 2000). 
+\pkg{DoE.base} (Groemping 2018), 
+\pkg{Rcmdr} (Fox 2005, 2017; Fox and Bouchet-Valat 2021), 
+\pkg{support.BWS2} (Aizaki 2021; Aizaki and Fogarty 2019), 
+\pkg{support.CEs} (Aizaki 2012, 2021), and
+\pkg{survival} (Therneau 2022; Therneau and Grambsch 2000). 
 Refer to Aizaki and Fogarty (2019) and 
-\sQuote{Non-Market Valuation with R} <\url{http://lab.agr.hokudai.ac.jp/nmvr/}> 
+\sQuote{Non-Market Valuation with R} <\url{https://nmvr.skr.jp/}> 
 for a brief introduction to BWS2 in R, 
 and Louviere et al. (2015) and Flynn et al. (2007) for BWS2.
 A manual for this package is available at <\url{https://sites.google.com/view/r4sp/rcmdrplugin}>.
@@ -44,18 +44,18 @@ provided by \pkg{RcmdrPlugin.BWS2}:
    \item The dialog box for \sQuote{\code{Design choice sets...}} designs 
 choice sets (profiles) for BWS2 with an orthogonal design 
 using the function \code{\link[DoE.base]{oa.design}} 
-in \pkg{\link{DoE.base}}.
+in \pkg{DoE.base}.
 
    \item The dialog box for \sQuote{\code{Display questions...}} 
 displays BWS2 questions from the profiles designed in the first dialog box 
 using the function \code{\link[support.BWS2]{bws2.questionnaire}} in 
-\pkg{\link{support.BWS2}}.
+\pkg{support.BWS2}.
 
    \item The dialog box for \sQuote{\code{Create data set for analysis...}} 
 creates a data set for analysis combining the choice sets designed in the first 
 dialog box and a data set containing responses to BWS2 questions using 
 the function \code{\link[support.BWS2]{bws2.dataset}} 
-in \pkg{\link{support.BWS2}}.
+in \pkg{support.BWS2}.
 
    \item Selecting the menu item \sQuote{\code{Measure preferences...}} gives 
 options: \sQuote{\code{Counting approach}} and \sQuote{\code{Modeling approach}}.
@@ -65,7 +65,7 @@ Each has additional sub-items (see below).
 various BW scores for each respondent from the data set for BWS2 analysis 
 created in the previous dialog box, and then stores them into a data 
 frame using the function \code{\link[support.BWS2]{bws2.count}} 
-in \pkg{\link{support.BWS2}}. The menu item is activated 
+in \pkg{support.BWS2}. The menu item is activated 
 if a data set for BWS2 analysis created in the previous dialog box is 
 selected as the active data set.
 
@@ -85,15 +85,15 @@ selected as the active data set.
    \item The dialog box for \sQuote{\code{Fit model...}} implements a conditional 
 logit model analysis of the data set for BWS2 analysis created in the previous 
 dialog box using the functions \code{\link[survival]{clogit}} 
-in \pkg{\link{survival}} and \code{\link[support.CEs]{gofm}} 
-in \pkg{\link{support.CEs}}. The menu item is activated 
+in \pkg{survival} and \code{\link[support.CEs]{gofm}} 
+in \pkg{support.CEs}. The menu item is activated 
 if a data set for BWS2 analysis created in the previous dialog box is selected as 
 the active data set.
 
    \item The dialog box for \sQuote{\code{Load saved objects...}} loads an R 
 Data (rda) file saved in the dialog box for \sQuote{\code{Design choice sets...}} 
 or \sQuote{\code{Create data set for analysis...}} using the function 
-\code{\link[base]{load}} in \pkg{\link{base}}.
+\code{\link[base]{load}} in \pkg{base}.
 }
 
 }
@@ -141,11 +141,10 @@ DOI: 10.18637/jss.v014.i09.
 
 Fox J (2017) \emph{Using the R Commander: A Point-and-Click Interface for R}.
 Chapman and Hall/CRC. 
-\url{https://socialsciences.mcmaster.ca/jfox/Books/RCommander/}
 
 Fox J, Bouchet-Valat M (2021) Rcmdr: R Commander.
 R package version 2.7-2.
-\url{https://socialsciences.mcmaster.ca/jfox/Misc/Rcmdr/}.
+\url{https://CRAN.R-project.org/package=Rcmdr}.
 
 Groemping U (2018) R Package DoE.base for Factorial Experiments.
 \emph{Journal of Statistical Software}, \bold{85}(5), 1--41.

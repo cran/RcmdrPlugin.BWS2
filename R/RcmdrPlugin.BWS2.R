@@ -214,7 +214,7 @@ bws2Design <- function() {
     # Save choice sets and attributes and levels
     if (tclvalue(saveVariable) == 1) {
       saveFile <- tclvalue(tkgetSaveFile(
-        filetype = gettextRcmdr(
+        filetypes = gettextRcmdr(
           '{"R Data Files" {".rda" ".RDA" ".rdata" ".RData"}}'),
         defaultextension = ".rda",
         initialfile = paste0(tclvalue(designName), ".rda"),
@@ -1070,8 +1070,6 @@ bws2Model <- function() {
     covariates  <- getSelection(covariatesBox)
     closeDialog()
 
-    attributesLevelsMF <- paste(c(attributes, levels), collapse = " + ")
-   
     putDialog("bws2Model", 
       list(ini.responseVarName = tclvalue(responseVarName),
            ini.strataVarName   = tclvalue(strataVarName),
@@ -1088,14 +1086,23 @@ bws2Model <- function() {
       putRcmdr("modelWithSubset", TRUE)
     }
 
+    attributesLevels   <- c(attributes, levels)
+    attributesLevelsMF <- paste(attributesLevels, collapse = " + ")
+    
     if (length(covariates) == 0) {
       formula <- paste(responseVar, " ~ ", attributesLevelsMF,  
                        " + strata(", strataVar ,")", sep = "")
     } else {
-      covariates <- paste(covariates, collapse = " + ")
-      formula <- paste(responseVar, " ~ (", attributesLevelsMF, ") * (", covariates, 
-                       ") - (", covariates, ") + strata(", strataVar ,")", 
-                       sep = "")
+      covariatesMF <- 
+        paste0(rep(attributesLevels, each = length(covariates)),
+               ":",
+               rep(covariates, time = length(attributesLevels)),
+               collapse = " + ")
+      
+      formula <- paste0(responseVar, " ~ ",
+                        attributesLevelsMF, " + ",
+                        covariatesMF, " + ",
+                        "strata(", strataVar ,")")
     }
 
     cmd <- paste("clogit(", formula, ", data = ", ActiveDataSet(), subset, 
@@ -1175,7 +1182,7 @@ resetBws2Model <- function() {
 }
 ###############################################################################
 bws2Load <- function() {
-  file <- tclvalue(tkgetOpenFile(filetype = gettextRcmdr(
+  file <- tclvalue(tkgetOpenFile(filetypes = gettextRcmdr(
     ' {"R Data Files" {".rda" ".RDA" ".rdata" ".RData"}}')))
 
   if (file == "") {
@@ -1201,4 +1208,332 @@ bws2DataP <- function() {
 bws2CountP <- function() {
   activeDataSetP() && class(get(ActiveDataSet()))[1] == "bws2.count"
 }
-
+###############################################################################
+bws2ResponseSet <- function(){
+  initializeDialog(title = gettextRcmdr("Set Options for Response Collection"))
+  defaults <- list(ini.designName         = "BWS2design",
+                   ini.attributelevelName = "BWS2attributes",
+                   ini.saveVariable       ="1")
+  dialog.values = getDialog("bws2ResponseSet", defaults)
+  
+  ##### Frame #####
+  inputsFrame <- tkframe(top)
+  diFrame     <- tkframe(inputsFrame)
+  saveFrame   <- tkframe(inputsFrame)
+  
+  # Design
+  designName <- tclVar(dialog.values$ini.designName)
+  design     <- ttkentry(diFrame, width = "14", textvariable = designName)
+  
+  # Attributes and levels
+  attributelevelName <- tclVar(dialog.values$ini.attributelevelName)
+  attributelevel     <- ttkentry(diFrame, width = "14",
+                                 textvariable = attributelevelName)
+  
+  # Save
+  saveVariable <- tclVar(dialog.values$ini.saveVariable)
+  saveCheckBox <- ttkcheckbutton(saveFrame, variable = saveVariable)
+  
+  ##### OK button #####
+  onOK <- function() {
+    putDialog(
+      "bws2ResponseSet",
+      list(ini.saveVariable       = tclvalue(saveVariable),
+           ini.attributelevelName = tclvalue(attributelevelName),
+           ini.designName         = tclvalue(designName)))
+    
+    if (tclvalue(saveVariable) == 1) {
+      SAVE <- TRUE
+    } else {
+      SAVE <- FALSE
+    }
+    
+    closeDialog()
+    
+    putRcmdr("BWS2response.SAVE", SAVE)
+    
+    bws2Response()
+    
+    tkfocus(CommanderWindow())
+  }
+  
+  OKCancelHelp(helpSubject = "bws2Response")
+  
+  # Design
+  tkgrid(
+    labelRcmdr(
+      diFrame,
+      text = gettextRcmdr("Design ")),
+    design,
+    sticky = "w")
+  
+  # Attributes and levels
+  tkgrid(
+    labelRcmdr(
+      diFrame,
+      text = gettextRcmdr("Attributes and levels ")),
+    labelRcmdr(
+      diFrame,
+      text = tclvalue(attributelevelName),
+      relief = "solid",
+      foreground = "green"),
+    sticky = "w")
+  
+  # Save
+  tkgrid(
+    saveCheckBox,
+    labelRcmdr(
+      saveFrame,
+      text = gettextRcmdr("Save to file")),
+    sticky = "w")
+  
+  tkgrid(diFrame, sticky = "nw")
+  
+  tkgrid(saveFrame, sticky = "nw")
+  
+  tkgrid(inputsFrame, sticky = "nw")
+  
+  tkgrid(buttonsFrame, columnspan = 2, sticky = "w")
+  
+  dialogSuffix()
+}
+###############################################################################
+bws2Response <- function() {
+  initializeDialog(title = gettextRcmdr("Collect Responses to BWS2 Questions"))
+  defaults <- list(
+    ini.Q = 1,
+    ini.bestName             = "<no level selected>",
+    ini.worstName            = "<no level selected>",
+    ini.designName           = "BWS2design",
+    ini.attributelevelName   = "BWS2attributes")
+  dialog.values <- getDialog("bws2Response", defaults)
+  
+  save <- getRcmdr("BWS2response.SAVE")
+  
+  ##### Frame
+  inputsFrame   <- tkframe(top)
+  bwFrame       <- tkframe(inputsFrame)
+  okcancelFrame <- tkframe(top)
+  okFrame       <- tkframe(okcancelFrame)
+  cancelFrame   <- tkframe(okcancelFrame)
+  
+  # Design
+  designName  <- tclVar(dialog.values$ini.designName)
+  designValue <- tclvalue(designName)
+  
+  # Attributes and levels
+  attributelevelName <- tclVar(dialog.values$ini.attributelevelName)
+  attributelevel     <- tclvalue(attributelevelName)
+  
+  DESIGN  <- eval(parse(text = designValue))
+  AttLvls <- eval(parse(text = attributelevel))
+  sets <- data.frame(DESIGN)
+  for (i in 1:ncol(sets)) {
+    sets[, i] <- as.character(factor(x = sets[, i],
+                                     levels = sort(unique.default(sets[, i])),
+                                     labels = AttLvls[[i]]))
+  }
+  availableItems <- unlist(sets[dialog.values$ini.Q, ], use.names = FALSE)
+  nQues          <- nrow(DESIGN)
+  
+  # Best
+  bestitem <- variableComboBox(
+    bwFrame,
+    variableList = availableItems,
+    nullSelection = "<no level selected>",
+    adjustWidth = TRUE)
+  
+  # Worst
+  worstitem <- variableComboBox(
+    bwFrame,
+    variableList = availableItems,
+    nullSelection = "<no level selected>",
+    adjustWidth = TRUE)
+  
+  ##### OK button #####
+  onOK <- function() {
+    bestName  <- getSelection(bestitem)
+    worstName <- getSelection(worstitem)
+    
+    if(bestName == "<no level selected>") {
+      Message(gettextRcmdr("Please select your best level"), type = "warning")
+      closeDialog()
+      bws2Response()
+      return()
+    }
+    
+    if(worstName == "<no level selected>") {
+      Message(gettextRcmdr("Please select your worst level"), type = "warning")
+      closeDialog()
+      bws2Response()
+      return()
+    }
+    
+    if(bestName == worstName) {
+      Message(gettextRcmdr("Your best level must differ from your worst level"),
+              type = "warning")
+      closeDialog()
+      bws2Response()
+      return()
+    }
+    
+    putDialog("bws2Response", list(
+      ini.Q                  = dialog.values$ini.Q + 1,
+      ini.bestName           = "<no level selected>",
+      ini.worstName          = "<no level selected>",
+      ini.designName         = designValue,
+      ini.attributelevelName = tclvalue(attributelevelName)))
+    
+    if(dialog.values$ini.Q == 1) {
+      set.seed(seed = NULL)
+      justDoIt(paste0("MyBWS2responses <- c(", sample.int(1e10, 1), ")"))
+    }
+    
+    rowNumberBest  <- which(bestName  == availableItems)
+    rowNumberWorst <- which(worstName == availableItems)
+    
+    justDoIt(paste0("MyBWS2responses <- c(MyBWS2responses, c(",
+                    rowNumberBest, ", ", rowNumberWorst, "))"))
+    
+    closeDialog()
+    
+    if(dialog.values$ini.Q < nQues) {
+      bws2Response()
+    } else {
+      putDialog("bws2Response", list(
+        ini.Q          = 1,
+        ini.bestName   = "<no level selected>",
+        ini.worstName  = "<no level selected>",
+        ini.designName = designValue,
+        ini.attributelevelName = tclvalue(attributelevelName)))
+      
+      varNAMES <- paste0("'",
+                         paste0(rep(c("B", "W"), time = nQues),
+                                rep(1:nQues, each = 2), collapse = "', '"),
+                         "'")
+      cmd <- paste0("names(MyBWS2responses) <- c('id', ", c(varNAMES), ")")
+      justDoIt(cmd)
+      doItAndPrint(paste0("MyBWS2responses"))
+      
+      # Save
+      if(isTRUE(save)) {
+        saveFile <- tclvalue(tkgetSaveFile(
+          filetypes = gettextRcmdr(
+            '{"CSV Files" {".csv" ".CSV"}}'),
+          defaultextension = ".csv",
+          initialfile = "MyBWS2responses.csv",
+          parent = CommanderWindow()))
+        if(saveFile == "") {
+          tkfocus(CommanderWindow())
+          return()
+        }
+        cmd <- paste0('write.csv(t(MyBWS2responses), file = "', saveFile,
+                      '", row.names = FALSE)')
+        justDoIt(cmd)
+        logger(cmd)
+        Message(
+          paste0(
+            gettextRcmdr("Your responses to BWS2 questions were exported to file: "),
+            saveFile),
+          type = "note")
+      }
+    }
+    tkfocus(CommanderWindow())
+  }
+  
+  onCancel <- function() {
+    closeDialog()
+    
+    putDialog("bws2Response", list(
+      ini.Q          = 1,
+      ini.bestName   = "<no level selected>",
+      ini.worstName  = "<no level selected>",
+      ini.designName = designValue,
+      ini.attributelevelName = tclvalue(attributelevelName)))
+    
+    tkfocus(CommanderWindow())
+  }
+  
+  tkgrid(
+    labelRcmdr(
+      inputsFrame,
+      text = gettextRcmdr(paste0("Question ", dialog.values$ini.Q))),
+    sticky = "w")
+  
+  tkgrid(
+    labelRcmdr(
+      inputsFrame,
+      text = gettextRcmdr(
+        "Please select your best and worst levels from the following:")),
+    sticky = "w")
+  
+  for(i in 1:ncol(DESIGN)) {
+    tkgrid(
+      labelRcmdr(
+        inputsFrame,
+        text = paste0("  ",
+                      unlist(sets[dialog.values$ini.Q, ], use.names = FALSE)[i]),
+        foreground = "blue"),
+      sticky = "w")
+  }
+  
+  tkgrid(
+    labelRcmdr(
+      inputsFrame, 
+      text =""),
+    sticky = "w")
+  
+  tkgrid(labelRcmdr(bwFrame, text = "My best: "),
+         getFrame(bestitem),
+         sticky = "w")
+  
+  tkgrid(labelRcmdr(bwFrame, text = "My worst: "),
+         getFrame(worstitem),
+         sticky = "w")
+  
+  tkgrid(bwFrame, sticky = "w")
+  
+  ##### OK button #####
+  okButton <- buttonRcmdr(
+    okFrame,
+    text = gettextRcmdr("OK"),
+    foreground = "darkgreen",
+    width = "10",
+    command = onOK,
+    default = "active",
+    borderwidth = 3,
+    image = "::image::okIcon",
+    compound = "left")
+  
+  cancelButton <- buttonRcmdr(
+    cancelFrame,
+    text = gettextRcmdr("Cancel"),
+    foreground = "darkgreen",
+    width = "10",
+    command = onCancel,
+    default = "active",
+    borderwidth = 3,
+    image = "::image::cancelIcon",
+    compound = "left")
+  
+  tkgrid(okButton, sticky = "w")
+  tkconfigure(okButton, takefocus = 0)
+  
+  tkgrid(cancelButton, sticky = "w")
+  tkconfigure(cancelButton, takefocus = 0)
+  
+  tkgrid(
+    labelRcmdr(
+      inputsFrame,
+      text = ""),
+    sticky = "w")
+  
+  tkgrid(inputsFrame, sticky = "nw")
+  
+  tkgrid(okFrame, cancelFrame, sticky = "nw")
+  
+  tkgrid(okcancelFrame, sticky = "w")
+  
+  dialogSuffix()
+}
+###############################################################################
